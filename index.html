@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трекер количества</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --active-color: #2ea44f;
+            --hover-color: #f6f8fa;
+            --bar-bg: #f3f4f6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            font-size: 14px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .tracker-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .habit-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .habit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .habit-name-input {
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            color: inherit;
+            width: 100%;
+            outline: none;
+        }
+
+        .habit-name-input:focus {
+            background: var(--hover-color);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .habit-stats {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .target-input {
+            width: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+            padding: 2px;
+        }
+
+        /* Сетка ячеек прогресса */
+        .grid-dots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bar-bg);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .dot:hover {
+            border-color: #999;
+        }
+
+        .dot.active {
+            background-color: var(--active-color);
+            border-color: var(--active-color);
+        }
+
+        .controls {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            background-color: #f3f4f6;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background-color: #e5e7eb;
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 4px;
+        }
+
+        .delete-btn:hover {
+            color: #da3633;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Цели и привычки на месяц</h2>
+    
+    <div class="tracker-container" id="tracker-container">
+        <!-- Карточки генерируются через JS -->
+    </div>
+
+    <div class="controls">
+        <button onclick="addHabit()">+ Добавить цель</button>
+        <button onclick="resetData()">Сбросить всё</button>
+    </div>
+
+    <script>
+        // Данные по умолчанию: имя, цель (сколько раз за месяц), массив отметок (булевы значения)
+        let habits = JSON.parse(localStorage.getItem('counter_habits_data')) || [
+            { name: "🏋️ Тренировки", target: 12, completed: Array(12).fill(false) },
+            { name: "📚 Прочитать книги (главы/шт)", target: 4, completed: Array(4).fill(false) },
+            { name: "🧘 Медитации", target: 20, completed: Array(20).fill(false) }
+        ];
+
+        function render() {
+            const container = document.getElementById('tracker-container');
+            container.innerHTML = '';
+
+            habits.forEach((habit, index) => {
+                const card = document.createElement('div');
+                card.className = 'habit-card';
+
+                // Шапка карточки (Название, Цель, Кнопка удаления)
+                const header = document.createElement('div');
+                header.className = 'habit-header';
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'habit-name-input';
+                nameInput.value = habit.name;
+                nameInput.oninput = (e) => {
+                    habits[index].name = e.target.value;
+                    saveData();
+                };
+
+                const statsDiv = document.createElement('div');
+                statsDiv.className = 'habit-stats';
+                
+                const doneCount = habit.completed.filter(Boolean).length;
+                statsDiv.innerHTML = `<span>Выполнено: <b>${doneCount}</b> из </span>`;
+
+                const targetInput = document.createElement('input');
+                targetInput.type = 'number';
+                targetInput.min = '1';
+                targetInput.max = '100';
+                targetInput.className = 'target-input';
+                targetInput.value = habit.target;
+                targetInput.onchange = (e) => {
+                    let newTarget = parseInt(e.target.value) || 1;
+                    if (newTarget < 1) newTarget = 1;
+                    
+                    habits[index].target = newTarget;
+                    // Подгоняем массив выполненных под новый размер
+                    if (habits[index].completed.length < newTarget) {
+                        const diff = newTarget - habits[index].completed.length;
+                        habits[index].completed = habits[index].completed.concat(Array(diff).fill(false));
+                    } else {
+                        habits[index].completed = habits[index].completed.slice(0, newTarget);
+                    }
+                    saveData();
+                    render();
+                };
+                statsDiv.appendChild(targetInput);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '&times;';
+                deleteBtn.title = 'Удалить цель';
+                deleteBtn.onclick = () => {
+                    if (confirm(`Удалить цель "${habit.name}"?`)) {
+                        habits.splice(index, 1);
+                        saveData();
+                        render();
+                    }
+                };
+
+                header.appendChild(nameInput);
+                header.appendChild(statsDiv);
+                header.appendChild(deleteBtn);
+                card.appendChild(header);
+
+                // Сетка квадратиков (точек)
+                const dotsGrid = document.createElement('div');
+                dotsGrid.className = 'grid-dots';
+
+                for (let i = 0; i < habit.target; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    if (habit.completed[i]) {
+                        dot.classList.add('active');
+                    }
+                    dot.onclick = () => {
+                        habits[index].completed[i] = !habits[index].completed[i];
+                        saveData();
+                        render();
+                    };
+                    dotsGrid.appendChild(dot);
+                }
+
+                card.appendChild(dotsGrid);
+                container.appendChild(card);
+            });
+        }
+
+        function addHabit() {
+            habits.push({ name: "Новая цель", target: 10, completed: Array(10).fill(false) });
+            saveData();
+            render();
+        }
+
+        function saveData() {
+            localStorage.setItem('counter_habits_data', JSON.stringify(habits));
+        }
+
+        function resetData() {
+            if (confirm('Сбросить прогресс всех целей?')) {
+                localStorage.removeItem('counter_habits_data');
+                location.reload();
+            }
+        }
+
+        render();
+    </script>
+</body>
+</html>
