@@ -7,11 +7,11 @@
     <style>
         :root {
             --bg-color: #ffffff;
-            --text-color: #333333;
-            --border-color: #e0e0e0;
-            --active-color: #2ea44f;
-            --hover-color: #f6f8fa;
-            --bar-bg: #f3f4f6;
+            --text-color: #0044cc; /* Синій колір тексту */
+            --border-color: #b3d1ff; /* Світло-синя рамка */
+            --active-color: #0066ff; /* Насичений синій для активних крапок */
+            --hover-color: #f0f6ff; /* Дуже світлий синюватий фон при наведенні */
+            --bar-bg: #f4f8ff;
             --danger-color: #da3633;
         }
 
@@ -29,6 +29,7 @@
             font-size: 18px;
             text-align: center;
             margin-bottom: 16px;
+            color: var(--text-color);
         }
 
         .tracker-container {
@@ -41,8 +42,8 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 12px;
-            background: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 102, 255, 0.05);
         }
 
         .habit-header {
@@ -60,7 +61,7 @@
             font-family: inherit;
             font-size: 15px;
             font-weight: 600;
-            color: inherit;
+            color: var(--text-color);
             width: 100%;
             text-align: center;
             outline: none;
@@ -78,7 +79,7 @@
             align-items: center;
             width: 100%;
             font-size: 13px;
-            color: #666;
+            color: #3377ff; /* Трохи світліший синій для футера картки */
             border-top: 1px solid var(--border-color);
             padding-top: 8px;
             margin-top: 4px;
@@ -98,6 +99,8 @@
             text-align: center;
             font-size: 13px;
             padding: 2px;
+            color: var(--text-color);
+            background: #fff;
         }
 
         .action-buttons {
@@ -123,7 +126,7 @@
         }
 
         .dot:hover {
-            border-color: #999;
+            border-color: #3385ff;
         }
 
         .dot.active {
@@ -138,8 +141,9 @@
         }
 
         button {
-            background-color: #f3f4f6;
+            background-color: #f4f8ff;
             border: 1px solid var(--border-color);
+            color: var(--text-color);
             padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
@@ -148,7 +152,7 @@
         }
 
         button:hover {
-            background-color: #e5e7eb;
+            background-color: #e6f0ff;
         }
 
         .btn-small {
@@ -260,7 +264,6 @@
                 const actionButtons = document.createElement('div');
                 actionButtons.className = 'action-buttons';
 
-                // Сброс прогресса конкретной цели без подтверждения
                 const resetHabitBtn = document.createElement('button');
                 resetHabitBtn.className = 'btn-small';
                 resetHabitBtn.innerText = 'Reset progress';
@@ -270,7 +273,6 @@
                     render();
                 };
 
-                // Удаление цели без подтверждения
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'btn-small delete-btn';
                 deleteBtn.innerText = 'Delete';
@@ -301,7 +303,6 @@
             localStorage.setItem('counter_habits_en_data', JSON.stringify(habits));
         }
 
-        // Reset All без подтверждения
         function resetAllData() {
             localStorage.removeItem('counter_habits_en_data');
             location.reload();
